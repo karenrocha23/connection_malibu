@@ -6,8 +6,22 @@ import authRoutes from './routes/auth.routes.js';
 import adminRoutes from './routes/admin.routes.js';
 import { exigirAutenticacao } from './middleware/autenticacao.js';
 import { ErroValidacao } from './services/produtos.validacao.js';
+import { initializeDatabase } from './database/db.js';
 
 const app = express();
+
+let databaseInitialization;
+
+app.use(async (_req, res, next) => {
+  try {
+    databaseInitialization ??= initializeDatabase();
+    await databaseInitialization;
+    next();
+  } catch (erro) {
+    databaseInitialization = null;
+    next(erro);
+  }
+});
 
 app.set('trust proxy', process.env.VERCEL === '1' ? 1 : false);
 app.use(express.json());
